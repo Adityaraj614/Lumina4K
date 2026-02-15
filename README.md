@@ -51,7 +51,7 @@ models/ → Pretrained Weights
 ## 📦 Installation
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/Lumina4K.git
+git clone https://github.com/Adityaraj614/Lumina4K.git
 cd Lumina4K
 pip install -r requirements.txt
 ```
