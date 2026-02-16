@@ -12,6 +12,10 @@ Build using PyTorch + Cuda for high performance inference.
 ✔ Game Mode (Preserves Folder Structure for Texture Remastering)  
 ✔ GPU Acceleration (CUDA)  
 ✔ Dark Gamer UI  
+✔ RealESRGAN x4 Super-Resolution
+✔ GPU Acceleration (CUDA)
+✔ Tile-based VRAM Optimization
+✔ Verified 4× Spatial Scaling
 
 ---
 
