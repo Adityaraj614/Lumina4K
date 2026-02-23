@@ -9,7 +9,7 @@ def main():
     input_dir = os.path.join(BASE_DIR, "input_images")
     output_dir = os.path.join(BASE_DIR, "output_images")
 
-    engine.upscale_folder(input_dir, output_dir)
+    engine.upscale_folder(input_dir, output_dir, game_mode=True)
 
 if __name__ == "__main__":
     main()
