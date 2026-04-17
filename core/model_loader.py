@@ -11,6 +11,9 @@ def load_realesrgan_model(base_dir: str):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    # -----------------------------
+    # Model Architecture
+    # -----------------------------
     model = RRDBNet(
         num_in_ch=3,
         num_out_ch=3,
@@ -20,17 +23,32 @@ def load_realesrgan_model(base_dir: str):
         scale=4
     )
 
+    # -----------------------------
+    # Model Path
+    # -----------------------------
     model_path = os.path.join(base_dir, "weights", "RealESRGAN_x4plus.pth")
 
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(
+            f"[ModelLoader] RealESRGAN weights not found at: {model_path}\n"
+            "👉 Please download RealESRGAN_x4plus.pth and place it in /weights/"
+        )
+
+    # -----------------------------
+    # Initialize Upsampler
+    # -----------------------------
     upsampler = RealESRGANer(
         scale=4,
         model_path=model_path,
         model=model,
-        tile=256,
+        tile=256,        # VRAM optimization (safe for RTX 3050)
         tile_pad=10,
         pre_pad=0,
-        half=True if device.type == "cuda" else False,
+        half=True if device.type == "cuda" else False,  # FP16 for GPU
         device=device
     )
+
+    print(f"[ModelLoader] Using device: {device}")
+    print("[ModelLoader] RealESRGAN loaded successfully")
 
     return upsampler

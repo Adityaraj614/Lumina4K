@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Batch Processing</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body.batch-studio-page {
+            display: block;
+            padding: 0;
+            background:
+                radial-gradient(circle at top, rgba(255, 215, 0, 0.08), transparent 30%),
+                radial-gradient(circle at top, #1a1a1a 0%, #000000 70%);
+            color: #ffffff;
+        }
+
+        body.batch-studio-page::before {
+            background: radial-gradient(circle at 50% 0%, rgba(255, 196, 0, 0.05), transparent 45%);
+        }
+
+        .batch-shell {
+            width: min(1040px, 100%);
+            margin: 0 auto;
+            padding: 56px 24px 72px;
+            position: relative;
+        }
+
+        .back-link {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            backdrop-filter: blur(8px);
+            cursor: pointer;
+            text-decoration: none;
+            transition: filter 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .back-link:hover {
+            filter: brightness(1.08);
+            box-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .batch-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .batch-header h1 {
+            margin: 0 0 12px;
+            color: #f3f4f6;
+            font-size: clamp(2.4rem, 5vw, 3.6rem);
+            letter-spacing: -0.03em;
+        }
+
+        .batch-header p {
+            width: min(720px, 100%);
+            margin: 0 auto;
+            color: #9ca3af;
+            line-height: 1.7;
+            font-size: 1.02rem;
+        }
+
+        .batch-card {
+            display: grid;
+            gap: 24px;
+            padding: 28px;
+            background: linear-gradient(180deg, rgba(24, 26, 32, 0.96), rgba(15, 17, 21, 0.98));
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 18px;
+            box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45), 0 0 28px rgba(255, 200, 0, 0.05);
+        }
+
+        .batch-form {
+            display: grid;
+            gap: 18px;
+        }
+
+        .batch-field {
+            display: grid;
+            gap: 10px;
+        }
+
+        .batch-field label {
+            color: #f3f4f6;
+            font-weight: 600;
+        }
+
+        .batch-field input[type="file"] {
+            margin-bottom: 0;
+            width: 100%;
+            background: #17191f;
+            color: #f9fafb;
+            border: 1px solid #2d3340;
+            border-radius: 12px;
+            padding: 14px 16px;
+        }
+
+        .batch-field input[type="file"]:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 0 3px rgba(255, 208, 0, 0.12);
+        }
+
+        .batch-note {
+            margin: 0;
+            color: #9ca3af;
+            line-height: 1.6;
+        }
+
+        .batch-queue {
+            display: grid;
+            gap: 12px;
+            padding: 18px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .batch-queue h2 {
+            margin: 0;
+            font-size: 1rem;
+            color: #e5e7eb;
+        }
+
+        .batch-queue p {
+            margin: 0;
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        .batch-queue-list {
+            display: grid;
+            gap: 10px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .batch-queue-list li {
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.04);
+            color: #d1d5db;
+            font-size: 0.95rem;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .batch-progress-shell {
+            display: grid;
+            gap: 10px;
+        }
+
+        .batch-progress-shell span {
+            color: #9ca3af;
+            font-size: 0.92rem;
+        }
+
+        .batch-progress-track {
+            width: 100%;
+            height: 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            overflow: hidden;
+        }
+
+        .batch-progress-bar {
+            width: 0;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(135deg, #ffd700, #ffb800);
+            opacity: 0.65;
+        }
+
+        #batch-button {
+            width: 100%;
+            padding: 14px 18px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #ffd700, #ffb800);
+            color: #000000;
+            font-weight: 700;
+            box-shadow: 0 12px 28px rgba(255, 184, 0, 0.18);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+        }
+
+        #batch-button:hover {
+            transform: translateY(-1px) scale(1.01);
+            filter: none;
+            box-shadow: 0 16px 34px rgba(255, 184, 0, 0.24), 0 0 18px rgba(255, 215, 0, 0.12);
+        }
+
+        #batch-button:disabled {
+            box-shadow: none;
+        }
+
+        #batch-status {
+            margin-top: 2px;
+            color: #9ca3af;
+        }
+
+        #batch-status.success {
+            color: #9ae6b4;
+        }
+
+        #batch-status.error {
+            color: #fca5a5;
+        }
+
+        .batch-result {
+            margin: 0;
+            color: #d1d5db;
+            min-height: 24px;
+            line-height: 1.6;
+        }
+
+        .batch-download {
+            display: none;
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: #222831;
+            color: #f9fafb;
+            font-weight: 600;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .batch-download:hover {
+            transform: translateY(-1px);
+            background: #2d3642;
+            filter: none;
+        }
+
+        .batch-results {
+            display: grid;
+            gap: 20px;
+            margin-top: 28px;
+        }
+
+        .batch-results[hidden] {
+            display: none;
+        }
+
+        .batch-result-card {
+            background: linear-gradient(145deg, #0f172a, #020617);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .batch-result-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 215, 0, 0.14);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.34), 0 0 20px rgba(255, 215, 0, 0.06);
+        }
+
+        .batch-result-card h3 {
+            margin: 0 0 16px;
+            color: #f8fafc;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .image-compare {
+            display: flex;
+            gap: 20px;
+            justify-content: space-between;
+        }
+
+        .image-box {
+            flex: 1 1 0;
+            min-width: 0;
+        }
+
+        .image-box p {
+            margin: 0 0 10px;
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        .image-box img {
+            width: 100%;
+            max-height: 250px;
+            object-fit: cover;
+            border-radius: 10px;
+            background: #0b1120;
+            transition: transform 0.2s ease;
+        }
+
+        .batch-result-card:hover .image-box img {
+            transform: scale(1.01);
+        }
+
+        .batch-result-download {
+            margin-top: 18px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .batch-result-download button {
+            width: auto;
+            min-width: 180px;
+            padding: 12px 18px;
+            background: linear-gradient(135deg, #ffd700, #ffb800);
+            color: #000;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            box-shadow: 0 12px 28px rgba(255, 184, 0, 0.18);
+        }
+
+        .batch-result-download button:hover {
+            transform: translateY(-1px);
+            filter: none;
+            box-shadow: 0 16px 34px rgba(255, 184, 0, 0.24), 0 0 18px rgba(255, 215, 0, 0.12);
+        }
+
+        @media (max-width: 720px) {
+            .batch-shell {
+                padding: 36px 16px 48px;
+            }
+
+            .batch-card {
+                padding: 22px 18px;
+            }
+
+            .image-compare {
+                flex-direction: column;
+            }
+
+            .batch-result-download {
+                justify-content: stretch;
+            }
+
+            .batch-result-download button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="batch-studio-page">
+    <main class="shell batch-shell">
+        <a class="back-link" href="/">Back to Home</a>
+        <section class="batch-header">
+            <h1>Batch Processing</h1>
+            <p>Process multiple images at once. Run high-performance batch upscaling and download results as a single package.</p>
+        </section>
+
+        <article class="batch-card">
+            <form id="batch-form" class="batch-form" method="POST" enctype="multipart/form-data">
+                <div class="batch-field">
+                    <label for="batch-images">Upload Images</label>
+                    <input id="batch-images" name="images" type="file" accept="image/*" multiple required>
+                </div>
+
+                <p class="batch-note">Build a queue, launch the batch job, and export every processed result together when the package is ready.</p>
+
+                <section class="batch-queue">
+                    <h2>Batch Queue</h2>
+                    <p id="batchQueueEmpty">No files selected yet. Add multiple images to prepare the processing queue.</p>
+                    <ul id="batchQueueList" class="batch-queue-list" hidden></ul>
+                </section>
+
+                <section class="batch-progress-shell" aria-hidden="true">
+                    <span>Processing lane reserved for future progress feedback</span>
+                    <div class="batch-progress-track">
+                        <div class="batch-progress-bar"></div>
+                    </div>
+                </section>
+
+                <button id="batch-button" type="submit">Run Batch Processing</button>
+                <div id="batch-status" class="status" aria-live="polite"></div>
+                <p id="batchResultText" class="batch-result"></p>
+                <button id="downloadBatchBtn" class="batch-download" type="button">Download ZIP</button>
+            </form>
+        </article>
+
+        <section id="batch-results" class="batch-results" hidden></section>
+    </main>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        const batchImagesInput = document.getElementById("batch-images");
+        const batchQueueList = document.getElementById("batchQueueList");
+        const batchQueueEmpty = document.getElementById("batchQueueEmpty");
+
+        if (batchImagesInput && batchQueueList && batchQueueEmpty) {
+            batchImagesInput.addEventListener("change", () => {
+                const files = Array.from(batchImagesInput.files || []);
+                batchQueueList.innerHTML = "";
+
+                if (!files.length) {
+                    batchQueueEmpty.hidden = false;
+                    batchQueueList.hidden = true;
+                    return;
+                }
+
+                batchQueueEmpty.hidden = true;
+                batchQueueList.hidden = false;
+
+                files.forEach((file) => {
+                    const item = document.createElement("li");
+                    item.textContent = file.name;
+                    batchQueueList.appendChild(item);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
